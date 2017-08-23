@@ -3,6 +3,7 @@ import sys, os
 import subprocess as sp
 import getpass
 import string
+import argparse
 
 from os.path import expanduser # works on all platforms, except when Windows AD maps to network drive
 home_path = expanduser("~")
@@ -13,7 +14,7 @@ shared_key_file = pubk_directory + 'shared.key'
 os.makedirs(pubk_directory, exist_ok=True)
 os.makedirs(pw_directory, exist_ok=True)
 
-USAGE = "\nNAME\n\tpw-py - password manager written in python\n\nSYNOPSIS\n\t./pw-py [OPTION] [SITENAME]\n\nDESCRIPTION\n\t-i, --initialize\n\t\tSet up local / shared key\n\t-g, --generate [SITENAME]\n\t\tgenerate password for site\n\n\t-s, --show [SITENAME]\n\t\tshow password for site\n\t-c --clipboard [SITENAME]\n\t\tcopy password for site to clipboard\n"
+# USAGE = "\nNAME\n\tpw-py - password manager written in python\n\nSYNOPSIS\n\t./pw-py [OPTION] [SITENAME]\n\nDESCRIPTION\n
 
 def gen_password(length):
     import string
@@ -38,7 +39,22 @@ def encrypt_arr_to_file(byte_arr, file_name):
     p.stdin.write("\n")
     res = p.communicate()[0]
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='pw-py - password manager written in python')
+
+    action = parser.add_mutually_exclusive_group(required=True)
+    action.add_argument('--init', '-i', action='store_true', help='Set up local / shared key')
+    action.add_argument('--generate', '-g', help='generate password for site')
+    action.add_argument('--show', '-s', help='show password for site')
+    action.add_argument('--clipboard', '-c', help='copy password for site to clipboard (implies -s)')
+
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
+    print(args)
 if __name__ == '__main__':
+    main()
     if len(sys.argv) == 1:
         print(USAGE)
     elif sys.argv[1] == '-i' or sys.argv[1] == '--init':
