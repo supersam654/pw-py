@@ -52,12 +52,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    print(args)
-if __name__ == '__main__':
-    main()
-    if len(sys.argv) == 1:
-        print(USAGE)
-    elif sys.argv[1] == '-i' or sys.argv[1] == '--init':
+    if args.init:
         master_pw = getpass.getpass("Enter a master password - DO NOT lose this or you will lose access to the passwords stored on this computer:\n")
         master_pw2 = getpass.getpass("Re-enter the master password:\n")
         if master_pw != master_pw2:
@@ -91,11 +86,11 @@ if __name__ == '__main__':
             encrypt_arr_to_file(shared_key, shared_key_file)
             print("**** Exported encrypted shared key to " + shared_key_file)
 
-    elif sys.argv[1] == '-g' or sys.argv[1] == '--generate':
+    elif args.generate:
         print ("**** GENERATING AND SAVING PASSWORD")
-        if len(sys.argv) < 3:
-            print ("**** Specify website or storage phrase to generate a password")
-            # TODO: specify options for length, etc
+        # if len(sys.argv) < 3:
+        #     print ("**** Specify website or storage phrase to generate a password")
+        #     # TODO: specify options for length, etc
 
         # TODO: allow actual character limitations
         reqUpper = True
@@ -118,7 +113,7 @@ if __name__ == '__main__':
                 break
 
         pw = "".join(str(c) for c in pw)
-        pw_filename = pw_directory + sys.argv[2]
+        pw_filename = pw_directory + args.generate
 
         master_pw = getpass.getpass("Master password: ")
         args1 = ['gpg', '-d', '--batch', '--passphrase', master_pw, shared_key_file]
@@ -130,10 +125,10 @@ if __name__ == '__main__':
         p2 = sp.Popen(args2, stdin=sp.PIPE, stdout=sp.PIPE, bufsize=1, universal_newlines=True)
         p2.stdin.write(pw)
         output = p2.communicate()[0]
-        print ("**** Saved password to {0}".format(sys.argv[2]))
+        print ("**** Saved password to {0}".format(args.generate))
 
-    elif (sys.argv[1] == "--show" or sys.argv[1] == "-s" or sys.argv[1] == "--clipboard" or sys.argv[1] == "-c") and len(sys.argv) >= 3:
-        pattern = sys.argv[2]
+    elif args.show or args.clipboard:
+        pattern = args.show or args.clipboard
         import glob
         matching_files = glob.glob(pw_directory + "*" + pattern + "*")
         if len(matching_files) == 0:
@@ -153,10 +148,10 @@ if __name__ == '__main__':
             output = p2.communicate()[0]
             output = str(output, 'UTF-8').strip()
 
-            if sys.argv[1] == "--show" or sys.argv[1] == "-s":
+            if args.show:
                 print (output)
             else:
                 print ("PRETENDING TO COPY TO CLIPBOARD")
-    else:
-        print ("****Unrecognized option")
-        print (USAGE)
+
+if __name__ == '__main__':
+    main()
