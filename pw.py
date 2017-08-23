@@ -5,16 +5,14 @@ import getpass
 import string
 import argparse
 
-from os.path import expanduser # works on all platforms, except when Windows AD maps to network drive
+from os.path import expanduser, join # works on all platforms, except when Windows AD maps to network drive
 home_path = expanduser("~")
-pubk_directory = '{}/.pw-py/keys/'.format(home_path)
-pw_directory = '{}/.pw-py/pws/'.format(home_path)
-shared_key_file = pubk_directory + 'shared.key'
+pubk_directory = join(home_path, '.pw-py', 'keys')
+pw_directory = join(home_path, '.pw-py', 'pws')
+shared_key_file = join(pubk_directory, 'shared.key')
 
 os.makedirs(pubk_directory, exist_ok=True)
 os.makedirs(pw_directory, exist_ok=True)
-
-# USAGE = "\nNAME\n\tpw-py - password manager written in python\n\nSYNOPSIS\n\t./pw-py [OPTION] [SITENAME]\n\nDESCRIPTION\n
 
 def gen_password(length):
     import string
@@ -68,7 +66,7 @@ def main():
         print(public_key)
 
         import platform
-        pubk_filename = pubk_directory + platform.node() + ".gpg"
+        pubk_filename = join(pubk_directory, platform.node() + ".gpg")
         args = ['gpg', '--armor', '--export', 'pw-py']
         p = sp.Popen(args, stdin=sp.PIPE, stdout=sp.PIPE, bufsize=1, universal_newlines=True)
         text = p.communicate()[0]
@@ -87,9 +85,9 @@ def main():
             print("**** Exported encrypted shared key to " + shared_key_file)
 
     elif args.generate:
-        print ("**** GENERATING AND SAVING PASSWORD")
+        print("**** GENERATING AND SAVING PASSWORD")
         # if len(sys.argv) < 3:
-        #     print ("**** Specify website or storage phrase to generate a password")
+        #     print("**** Specify website or storage phrase to generate a password")
         #     # TODO: specify options for length, etc
 
         # TODO: allow actual character limitations
@@ -113,7 +111,7 @@ def main():
                 break
 
         pw = "".join(str(c) for c in pw)
-        pw_filename = pw_directory + args.generate
+        pw_filename = join(pw_directory, args.generate)
 
         master_pw = getpass.getpass("Master password: ")
         args1 = ['gpg', '-d', '--batch', '--passphrase', master_pw, shared_key_file]
@@ -125,17 +123,17 @@ def main():
         p2 = sp.Popen(args2, stdin=sp.PIPE, stdout=sp.PIPE, bufsize=1, universal_newlines=True)
         p2.stdin.write(pw)
         output = p2.communicate()[0]
-        print ("**** Saved password to {0}".format(args.generate))
+        print("**** Saved password to {0}".format(args.generate))
 
     elif args.show or args.clipboard:
         pattern = args.show or args.clipboard
         import glob
-        matching_files = glob.glob(pw_directory + "*" + pattern + "*")
+        matching_files = glob.glob(join(pw_directory, "*" + pattern + "*"))
         if len(matching_files) == 0:
-            print ("Unable to find match for: {}".format(pattern))
+            print("Unable to find match for: {}".format(pattern))
         elif len(matching_files) > 1:
-            print ("Found multiple matches, please try again specifying which one")
-            print (matching_files)
+            print("Found multiple matches, please try again specifying which one")
+            print(matching_files)
         else:
             master_pw = getpass.getpass("Master password: ")
             args1 = ['gpg', '-d', '--batch', '-q', '--passphrase', master_pw, shared_key_file]
@@ -149,9 +147,9 @@ def main():
             output = str(output, 'UTF-8').strip()
 
             if args.show:
-                print (output)
+                print(output)
             else:
-                print ("PRETENDING TO COPY TO CLIPBOARD")
+                print("PRETENDING TO COPY TO CLIPBOARD")
 
 if __name__ == '__main__':
     main()
